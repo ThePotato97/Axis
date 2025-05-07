@@ -12,11 +12,7 @@ local MyProvider = {}
 -- AxisName is optional, but is used to add a memory category in the developer console
 MyProvider.AxisName = "MyProvider"
 
--- AxisPrepare is called on all providers when Axis:Start() is called
-function MyProvider:AxisPrepare()
-end
-
--- After all AxisPrepare methods are done on all providers, AxisStarted will be called
+-- AxisStarted is the only required lifecycle method
 function MyProvider:AxisStarted()
 end
 
@@ -36,7 +32,6 @@ Providers are just tables. As such, developers can add whatever is desired to a 
 ```lua
 local MathProvider = {}
 
-function MathProvider:AxisPrepare() end
 function MathProvider:AxisStarted() end
 
 function MathProvider:Add(n1: number, n2: number): number
@@ -62,12 +57,7 @@ local AnotherProvider = require(somewhere.AnotherProvider) -- Get the other prov
 
 local MyProvider = {}
 
-function MyProvider:AxisPrepare()
-	-- Not safe to use AnotherProvider because we can't guarantee it is ready yet
-end
-
 function MyProvider:AxisStarted()
-	-- We can now guarantee that AnotherProvider:AxisPrepare() has been called and completed.
 	-- It is now safe to use AnotherProvider.
 	AnotherProvider:DoSomething()
 end

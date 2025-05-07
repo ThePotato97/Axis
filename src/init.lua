@@ -10,7 +10,6 @@ export type ProviderLifecycleFn = (Provider) -> ()
 	@within Axis
 	@interface Provider
 	.AxisName string?
-	.AxisPrepare (Provider) -> ()
 	.AxisStarted (Provider) -> ()
 
 	Providers are simple structures that provide top-level structure,
@@ -19,23 +18,20 @@ export type ProviderLifecycleFn = (Provider) -> ()
 ]=]
 export type Provider = {
 	AxisName: string?,
-	AxisPrepare: ProviderLifecycleFn,
 	AxisStarted: ProviderLifecycleFn,
-	AxisExtensions: {Extension}?,
+	AxisExtensions: { Extension }?,
 	[any]: any,
 }
 
 --[=[
 	@within Axis
 	@interface Extension
-	.BeforePrepare (Provider) -> ()
 	.BeforeStarted (Provider) -> ()
 
 	Extensions allow developers to extend the capabilities
 	of providers within Axis.
 ]=]
 export type Extension = {
-	BeforePrepare: ProviderLifecycleFn?,
 	BeforeStarted: ProviderLifecycleFn?,
 	[any]: any,
 }
@@ -91,11 +87,11 @@ function Axis:_RunExtensions(funcName: string, provider: Provider)
 			func(provider)
 		end
 	end
-	for _,extension: Extension in ipairs(self._Extensions) do
+	for _, extension: Extension in ipairs(self._Extensions) do
 		Run(extension)
 	end
 	if provider.AxisExtensions then
-		for _,extension: Extension in ipairs(provider.AxisExtensions) do
+		for _, extension: Extension in ipairs(provider.AxisExtensions) do
 			Run(extension)
 		end
 	end
@@ -113,9 +109,6 @@ end
 	local MyExtension = {}
 
 	-- Note the dot-notation for functions instead of colon-notation
-	function MyExtension.BeforePrepare(provider)
-		print("BeforePrepare provider", provider.AxisName)
-	end
 	function MyExtension.BeforeStarted(provider)
 		print("BeforeStarted provider", provider.AxisName)
 	end
@@ -157,14 +150,7 @@ end
 
 	-- Optional name for memory labeling:
 	MyProvider.AxisName = "MyProvider"
-
-	-- AxisPrepare is called and completed on all providers before moving
-	-- on to AxisStarted:
-	function MyProvider:AxisPrepare()
-		print("Prepare MyProvider here")
-	end
-
-	-- AxisStarted is called once all AxisPrepare methods have completed:
+	
 	function MyProvider:AxisStarted()
 		print("Axis started")
 	end
@@ -208,42 +194,13 @@ end
 	:::
 ]=]
 function Axis:Start()
-
 	if self._Started or self._Starting then
 		error("Axis already started", 2)
 	end
 	self._Starting = true
 
-	local numProviders = #self._Providers
-	local prepareDone = 0
-
-	-- Call all AxisPrepare methods:
-	local thread = coroutine.running()
-	for _,provider: Provider in ipairs(self._Providers) do
-		if typeof(provider.AxisPrepare) == "function" then
-			task.spawn(function()
-				self:_RunExtensions("BeforePrepare", provider)
-				if provider.AxisName then
-					debug.setmemorycategory(provider.AxisName)
-				end
-				provider:AxisPrepare()
-				prepareDone += 1
-				if prepareDone == numProviders then
-					if coroutine.status(thread) == "suspended" then
-						task.spawn(thread)
-					end
-				end
-			end)
-		end
-	end
-
-	-- Await all AxisPrepare methods to be completed:
-	if numProviders ~= prepareDone then
-		coroutine.yield(thread)
-	end
-
 	-- Call all AxisStarted methods:
-	for _,provider: Provider in ipairs(self._Providers) do
+	for _, provider: Provider in ipairs(self._Providers) do
 		if typeof(provider.AxisStarted) == "function" then
 			task.spawn(function()
 				self:_RunExtensions("BeforeStarted", provider)
@@ -256,13 +213,12 @@ function Axis:Start()
 	end
 
 	-- Resume awaiting threads:
-	for _,awaitingThread in ipairs(self._Awaiting) do
+	for _, awaitingThread in ipairs(self._Awaiting) do
 		task.defer(awaitingThread)
 	end
 
 	self._Starting = false
 	self._Started = true
-
 end
 
 --[=[
@@ -276,7 +232,9 @@ end
 	```
 ]=]
 function Axis:AwaitStart()
-	if not self._Started then return end
+	if not self._Started then
+		return
+	end
 	table.insert(self._Awaiting, coroutine.running())
 	coroutine.yield()
 end

@@ -15,10 +15,6 @@ A bare-bones extension looks like the following:
 ```lua
 local SomeExtension = {}
 
--- Runs directly before AxisPrepare is called on the provider
-function SomeExtension.BeforePrepare(provider)
-end
-
 -- Runs directly before AxisStarted is called on the provider
 function SomeExtension.BeforeStarted(provider)
 end
@@ -77,10 +73,6 @@ While `AxisName` is optional for providers, here's a simple extension that tries
 ```lua
 local LogExtension = {}
 
-function LogExtension.BeforePrepare(provider)
-	print("Provider BeforePrepare", provider.AxisName)
-end
-
 function LogExtension.BeforeStarted(provider)
 	print("Provider BeforeStarted", provider.AxisName)
 end
@@ -96,7 +88,7 @@ local RunService = game:GetService("RunService")
 
 local PlayerInjectionExtension = {}
 
-function PlayerInjectionExtension.BeforePrepare(provider)
+function PlayerInjectionExtension.BeforeStart(provider)
 	if RunService:IsClient() then
 		provider.Player = Players.LocalPlayer
 	end

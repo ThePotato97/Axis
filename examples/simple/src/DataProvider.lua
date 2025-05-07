@@ -11,8 +11,10 @@ DataProvider._ThreadsAwaitingData = {}
 -- Resume any waiting threads with the given data
 function DataProvider:_ResumeAwaitingThreads(player: Player, data)
 	local threads = self._ThreadsAwaitingData[player]
-	if not threads then return end
-	for _,thread in ipairs(threads) do
+	if not threads then
+		return
+	end
+	for _, thread in ipairs(threads) do
 		task.spawn(thread, data)
 	end
 	self._ThreadsAwaitingData[player] = nil
@@ -52,12 +54,6 @@ function DataProvider:AwaitPlayerData(player: Player)
 	return coroutine.yield()
 end
 
-function DataProvider:AxisPrepare()
-	
-end
-
-function DataProvider:AxisStarted()
-	
-end
+function DataProvider:AxisStarted() end
 
 return DataProvider

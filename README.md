@@ -13,10 +13,6 @@ Providers are simply tables with a name and a couple lifecycle methods.
 ```lua
 local MyProvider = {}
 
-function MyProvider:AxisPrepare()
-	print("Prepare the provider")
-end
-
 function MyProvider:AxisStarted()
 	print("Started")
 end
@@ -46,11 +42,6 @@ local MyProvider = require(somewhere.MyProvider) -- Grab the other provider
 
 local AnotherProvider = {}
 
-function AnotherProvider:AxisPrepare()
-	-- Other providers are NOT safe to use here, because there's no guarantee
-	-- that they have all been prepared yet. Wait until AxisStarted.
-end
-
 function AnotherProvider:AxisStarted()
 	-- Other providers are safe to use once the AxisStarted method fires.
 	MyProvider:DoSomething()
@@ -70,9 +61,6 @@ local Axis = require(somewhere.Axis)
 
 Axis:AddExtension {
 	-- Assumes that a custom 'Name' field has been added to all providers:
-	BeforePrepare = function(provider)
-		print("Preparing provider", provider.Name)
-	end,
 	BeforeStarted = function(provider)
 		print("Starting provider", provider.Name)
 	end,
@@ -86,9 +74,6 @@ local MyProvider = {}
 
 MyProvider.AxisExtensions = {
 	{
-		BeforePrepare = function(provider)
-			print("BeforePrepare MyProvider")
-		end,
 		BeforeStarted = function(provider)
 			print("BeforeStarted MyProvider")
 		end,
