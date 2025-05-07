@@ -87,7 +87,7 @@ function Axis:_RunExtensions(funcName: string, provider: Provider)
 			func(provider)
 		end
 	end
-	for _, extension: Extension in ipairs(self._Extensions) do
+	for _, extension: Extension in ipairs(Axis._Extensions) do
 		Run(extension)
 	end
 	if provider.AxisExtensions then
@@ -135,10 +135,10 @@ end
 	:::
 ]=]
 function Axis:AddExtension(extension: Extension): Extension
-	if self._Started or self._Starting then
+	if Axis._Started or Axis._Starting then
 		error("Cannot add extensions after Axis has started", 2)
 	end
-	table.insert(self._Extensions, extension)
+	table.insert(Axis._Extensions, extension)
 	return extension
 end
 
@@ -164,12 +164,12 @@ end
 	:::
 ]=]
 function Axis:AddProvider(provider: Provider): Provider
-	if self._Started or self._Starting then
+	if Axis._Started or Axis._Starting then
 		error("Cannot add providers after Axis has started", 2)
-	elseif table.find(self._Providers, provider) ~= nil then
+	elseif table.find(Axis._Providers, provider) ~= nil then
 		error("Provider already exists", 2)
 	end
-	table.insert(self._Providers, provider)
+	table.insert(Axis._Providers, provider)
 	return provider
 end
 
@@ -194,16 +194,16 @@ end
 	:::
 ]=]
 function Axis:Start()
-	if self._Started or self._Starting then
+	if Axis._Started or Axis._Starting then
 		error("Axis already started", 2)
 	end
-	self._Starting = true
+	Axis._Starting = true
 
 	-- Call all AxisStarted methods:
-	for _, provider: Provider in ipairs(self._Providers) do
+	for _, provider: Provider in ipairs(Axis._Providers) do
 		if typeof(provider.AxisStarted) == "function" then
 			task.spawn(function()
-				self:_RunExtensions("BeforeStarted", provider)
+				Axis:_RunExtensions("BeforeStarted", provider)
 				if provider.AxisName then
 					debug.setmemorycategory(provider.AxisName)
 				end
@@ -213,12 +213,12 @@ function Axis:Start()
 	end
 
 	-- Resume awaiting threads:
-	for _, awaitingThread in ipairs(self._Awaiting) do
+	for _, awaitingThread in ipairs(Axis._Awaiting) do
 		task.defer(awaitingThread)
 	end
 
-	self._Starting = false
-	self._Started = true
+	Axis._Starting = false
+	Axis._Started = true
 end
 
 --[=[
@@ -232,10 +232,10 @@ end
 	```
 ]=]
 function Axis:AwaitStart()
-	if not self._Started then
+	if not Axis._Started then
 		return
 	end
-	table.insert(self._Awaiting, coroutine.running())
+	table.insert(Axis._Awaiting, coroutine.running())
 	coroutine.yield()
 end
 
@@ -250,12 +250,12 @@ end
 	```
 ]=]
 function Axis:OnStart(callback: () -> ())
-	if not self._Started then
+	if not Axis._Started then
 		task.spawn(callback)
 		return
 	end
 	local thread = coroutine.create(callback)
-	table.insert(self._Awaiting, thread)
+	table.insert(Axis._Awaiting, thread)
 end
 
 return Axis
